@@ -3,26 +3,33 @@
 var urlz = 'https://api.parse.com/1/classes/chatterbox';
 
 // displayMessage(messages)
-var displayMessages = function(messageList){
+var displayMessages = function(messageData){
+  //turn data into something readable
 
+  //add that data into the messageBox $(".messageBox")
+
+  //add a method for avaliable chat rooms 
+  // display those rooms on side and allow poerson to enter and post from them
 };
+
+
 
 var retrieveMessages = function(){
   $.ajax({
     url: urlz,
     type: 'GET',
-    sucess: function(messages){
-      console.log(messages);
+    success: function(data){
+      displayMessages(data.results);
     },
     error: function(data){
-      console.log('chatterbox: Failed to get messages', data);
+      console.error("You're fucked ", data);
     }
   });
 };
 
 
 var postMessage = function(messageString){
-  //construct the motha fucka 
+  //construct the data
   var toTransmit = JSON.strigify({
     'userName': this.userName,
     'text': messageString,
@@ -33,6 +40,7 @@ var postMessage = function(messageString){
       url: urlz,
       type: 'POST',
       data: toTransmit,
+      contentType: 'application/json',
       success: function(data){
         retrieveMessages();
       },
