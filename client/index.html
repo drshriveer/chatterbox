@@ -8,15 +8,39 @@
     <!-- external javascript -->
     <script src="bower_components/jquery/jquery.min.js"></script>
     <script src="bower_components/underscore/underscore-min.js"></script>
-    
     <!-- internal javascript -->
     <script src="scripts/config.js"></script>
     <script src="scripts/app.js"></script>
+
+    <style type="text/css">
+      #main{
+        width:350px;
+      }
+      .messageBox{
+        width: 99%;
+        height: 500px;
+        border: 1px solid black;
+      };
+      .inputField{
+        width: 85%;
+        height: 35px;
+        border: 3px solid blue;
+      };
+      .submitButton{
+        width: 14%;
+        height: 35px;
+        border-bottom: 1px solid black;
+        background-color: #006;
+      };
+    </style>
   </head>
   <body>
 
     <div id="main">
       <h1>Chat-Client</h1>
+      <div class="messageBox"> </div>
+      <div class="inputField"></div>
+      <div class="submitButton"></div>
     </div>
 
   </body>
