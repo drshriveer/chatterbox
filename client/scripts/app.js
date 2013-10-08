@@ -26,6 +26,7 @@ var escape = function(string){
   if(!string){return "";}
   return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 };
+
 var msgConstruct =function(user, message, time){
   var output = $('<li><em>' + user + ':</em>\t' + message + '\t<span class="time">' + time + '</span></li>');
   if(friends[user]){ output.addClass('friendList');}
@@ -34,14 +35,14 @@ var msgConstruct =function(user, message, time){
 
 var populateUserList = function(user){
   if(users[user]){return;}
-  var output = '<li class="name">' + curtail(user) + '</li>';
+  var output = $('<li>' + curtail(user) + '</li>');
   $('.users').append(output);
   users[user] = true;
 };
 
 var populateRoomList = function(chatroom){
   if(chatrooms[chatroom]){return;}
-  var output = '<li>' + curtail(chatroom) + '</li>';
+  var output = $('<li>' + curtail(chatroom) + '</li>');
   $('.chatrooms').append(output);
   chatrooms[chatroom] = true;
 };
@@ -98,14 +99,16 @@ $('document').ready(function(){
       submitMessage();
     }
   });
-  $('ul.users li').on('click', function(event){
+  // $('ul.users').children().on('click', function(event){
+  //   console.log("clicked");
+  //   console.log($(this).text());
+  // });
+
+$('em').on('click', function(event){
     console.log("clicked");
-  });
-  $('.messageList').on('click', function(event){
-    console.log("clicked");
+    console.log($(this).text());
   });
 
-  $
   retrieveMessages();
   setInterval(function(){
     retrieveMessages();
