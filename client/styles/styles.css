@@ -7,6 +7,9 @@ body{
 em{
   font-weight: bolder;
 }
+ul{
+  list-style-type: none;
+}
 #main h1{
   margin-top: 0;
   font-size: 35px;
@@ -22,8 +25,12 @@ em{
   padding: 50px 60px;
   border-width: 0 1px 1px 1px;
 }
+.friendList{
+  font-weight: bold;
+  color: pink;
+}
 .sideBar{
-  width: 150px;
+  width: 156px;
   height: 640px;
   border: 1px solid white;
   position: absolute;
@@ -67,8 +74,19 @@ em{
   font-size: 0.8em;
   color: #aaa;
 }
-
-
+.users, .chatrooms{
+  overflow-y: scroll; 
+  overflow-x: hidden;
+  width: 115px;
+  text-align: left;
+  height: 220px;
+  padding:13px;
+  border: 1px dashed black;
+  margin: auto;
+}
+.chatrooms li:hover, .users li:hover{
+  color: pink;
+}
 
 #main .error {
   border: 1px solid red;

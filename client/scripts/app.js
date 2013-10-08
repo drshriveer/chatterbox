@@ -3,12 +3,13 @@
 var urlz = 'https://api.parse.com/1/classes/chatterbox';
 var users = {};
 var chatrooms = {};
+var friends = {};
 
 var render = function(messageData){
   messageData = messageData.reverse();
   $('.messageList').html("");
   _(messageData).each(function(msg){
-    var chatroom = escape(msg.chatroom);
+    var chatroom = escape(msg.roomname);
     var user = escape(msg.username);
     var message = escape(msg.text); //replace
     var time = moment(msg.createdAt).fromNow();
@@ -26,23 +27,30 @@ var escape = function(string){
   return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 };
 var msgConstruct =function(user, message, time){
-  var output = '<li><em>' + user + ':</em>\t' + message + '\t<span class="time">' + time + '</span></li>';
+  var output = $('<li><em>' + user + ':</em>\t' + message + '\t<span class="time">' + time + '</span></li>');
+  if(friends[user]){ output.addClass('friendList');}
   $('.messageList').append(output);
 };
 
 var populateUserList = function(user){
   if(users[user]){return;}
-  var output = '<li>' + user + '</li>';
+  var output = '<li class="name">' + curtail(user) + '</li>';
   $('.users').append(output);
   users[user] = true;
 };
 
 var populateRoomList = function(chatroom){
   if(chatrooms[chatroom]){return;}
-  var output = '<li>' + chatroom + '</li>';
+  var output = '<li>' + curtail(chatroom) + '</li>';
   $('.chatrooms').append(output);
   chatrooms[chatroom] = true;
 };
+
+var curtail = function(string){
+  if(string.length < 12){return string;}
+  return(string.slice(0,12) + '..');
+};
+
 
 var retrieveMessages = function(){
   $.ajax({
@@ -50,14 +58,13 @@ var retrieveMessages = function(){
     type: 'GET',
     data: {order: '-createdAt'},
     success: function(data){
-      displayMessages(data.results);
+      render(data.results);
     },
     error: function(data){
       console.error("You're fucked ", data);
     }
   });
 };
-
 
 var postMessage = function(messageString){
   //construct the data
@@ -83,7 +90,7 @@ var postMessage = function(messageString){
 };
 
 $('document').ready(function(){
-  $('.submitButton').on('click', function(){
+  $('.submitButton').on('click', function(event){
     submitMessage();
   });
   $('.inputField').on('keydown', function(event){
@@ -91,7 +98,14 @@ $('document').ready(function(){
       submitMessage();
     }
   });
+  $('ul.users li').on('click', function(event){
+    console.log("clicked");
+  });
+  $('.messageList').on('click', function(event){
+    console.log("clicked");
+  });
 
+  $
   retrieveMessages();
   setInterval(function(){
     retrieveMessages();
