@@ -4,14 +4,18 @@ var urlz = 'https://api.parse.com/1/classes/chatterbox';
 
 // displayMessage(messages)
 var displayMessages = function(messageData){
-  //turn data into something readable
-
-  //add that data into the messageBox $(".messageBox")
-
-  //add a method for avaliable chat rooms 
-  // display those rooms on side and allow poerson to enter and post from them
+  $('.messageList').html("");
+  _(messageData).each(function(msg){
+    $('.messageList').append(msgConstruct(msg));
+  });
 };
 
+var msgConstruct =function(msg){
+  var user = msg.username;
+  var message = (msg.text || "").replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  var time = moment(msg.createdAt).fromNow();
+  return '<li><em>' + user + ':</em>\t' + message + '\t<span class="time">' + time + '</span></li>';
+};
 
 
 var retrieveMessages = function(){
@@ -20,6 +24,7 @@ var retrieveMessages = function(){
     type: 'GET',
     success: function(data){
       displayMessages(data.results);
+      console.log(data);
     },
     error: function(data){
       console.error("You're fucked ", data);
@@ -30,10 +35,10 @@ var retrieveMessages = function(){
 
 var postMessage = function(messageString){
   //construct the data
-  var toTransmit = JSON.strigify({
-    'userName': this.userName,
+  var toTransmit = JSON.stringify({
+    'username': location.search.split("=")[1],
     'text': messageString,
-    'roomName': 'lobby' //change this!
+    'roomname': 'lobby' //change this!
   });
 
    $.ajax({
@@ -59,3 +64,7 @@ var postMessage = function(messageString){
     // called when user pushes 'send' button.
 
 //onButtonClick() for getting new messages
+retrieveMessages();
+setInterval(function(){
+  retrieveMessages();
+}, 5000);
