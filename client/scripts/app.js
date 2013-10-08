@@ -47,16 +47,16 @@ var populateRoomList = function(chatroom){
   chatrooms[chatroom] = true;
 };
 
-var submitMessage = function(){
-  var toTransmit = JSON.stringify({
-    'username': location.search.split("=")[1],
-    'text': $('.inputField').text(),
-    'roomname': 'lobby' //change this!
-  });
+// var submitMessage = function(){
+//   var toTransmit = JSON.stringify({
+//     'username': location.search.split("=")[1],
+//     'text': $('.inputField').text(),
+//     'roomname': 'lobby' //change this!
+//   });
 
-  Messages.post(toTransmit);
-  $('.inputField').text('');
-};
+//   Messages.post(toTransmit);
+//   $('.inputField').text('');
+// };
 
 //-------- here be helpers
 var curtail = function(string){
@@ -72,42 +72,65 @@ var escape = function(string){
 
 var Messages = function(){};
 
-Messages.prototype.retrieve = function(){
+Messages.prototype.retrieve = function(options){
   $.ajax({
     url: urlz,
     type: 'GET',
-    data: {order: '-createdAt'},
-    success: function(data){
-      render(data.results);
-    },
-    error: function(data){
-      console.error("You're fucked ", data);
-    }
+    data: options.data,
+    success: options.success,
+    error: options.error
   });
 };
 
-Messages.prototype.post = function(toTransmit){
+Messages.prototype.post = function(options){
    $.ajax({
       url: urlz,
       type: 'POST',
-      data: toTransmit,
+      data: options.data,
       contentType: 'application/json',
-      success: function(data){
-        retrieveMessages();
-      },
-      error: function(data){
-        console.log('chatterbox: Failed to send message', data);
-      }
+      success: options.success,
+      error: options.error
    });
 };
+
+Messages.prototype.postOptions = function(){
+  return {
+    data: JSON.stringify({
+      'username': location.search.split("=")[1],
+      'text': $('.inputField').text(),
+      'roomname': 'lobby' //change this!
+    }),
+    error: function(data){
+      console.error("You're fucked ", data);
+    }
+  };
+};
+
+Messages.prototype.retrieveOptions= function(){
+    return {
+      data: {order: '-createdAt'},
+      success: function(data){ 
+        render(data.results);
+      },
+      error: function(data){
+        console.error("You're fucked ", data);
+      }
+    };
+};
+
+
 
 
 // here be document ready
 $('document').ready(function(){
+
   var messages = new Messages();
 
   $('.submitButton').on('click', function(event){
-    messages.retrieve();
+    var options = messages.postOptions();
+    options.success = function(data){messages.retrieve(messages.retrieveOptions());};
+    messages.post(messages.postOptions());
+    $('.inputField').text('');
   });
   $('.loginButton').on('click', function(event){
     var name = prompt("You must be logged in to view this page. Please enter a username.");
@@ -115,7 +138,10 @@ $('document').ready(function(){
   });
   $('.inputField').on('keydown', function(event){
     if(event.which === 13){
-      submitMessage();
+      var options = messages.postOptions();
+      options.success = function(data){messages.retrieve(messages.retrieveOptions());};
+      messages.post(messages.postOptions());
+      $('.inputField').text('');
     }
   });
   $(document).on('click', 'em', function(event){
@@ -123,13 +149,12 @@ $('document').ready(function(){
       //toggles friends
       if (!friends[name]){
         friends[name] = true;
-        console.log('adding');
         populateFriendsList();
-        retrieveMessages();
+        messages.retrieve(messages.retrieveOptions());
       } else{
         delete friends[name];
         populateFriendsList();
-        retrieveMessages();
+        messages.retrieve(messages.retrieveOptions());
       }
     });
 
@@ -138,9 +163,9 @@ $('document').ready(function(){
     });
 
 
-  messages.retrieve();
+  messages.retrieve(messages.retrieveOptions());
   setInterval(function(){
-    messages.retrieve();
-    console.log(document.hasFocus());
+    messages.retrieve(messages.retrieveOptions());
+    //console.log(document.hasFocus());
   }, 5000);
 });
