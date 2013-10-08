@@ -12,60 +12,14 @@
     <!-- internal javascript -->
     <script src="scripts/config.js"></script>
     <script src="scripts/app.js"></script>
-
-    <style type="text/css">
-    body{
-      background-color: #555;
-    }
-      h1{
-        color: white;
-      }
-      em{
-        font-weight: bolder;
-      }
-      #main{
-        width: 600px;
-        font-family: courier;
-        font-size: 1.1em;
-        background-color: #222;
-        color: white;
-      }
-      .messageBox{
-        width: 100%;
-        height: 700px;
-        border: 1px solid white;
-        overflow: scroll;
-      }
-      .messageList{
-        list-style-type: none;
-      }
-      .inputField{
-        margin: 2px;
-        width: 76%;
-        height: 32px;
-        border: 1px solid white;
-        float: left;
-        padding: 3px;
-      }
-      .submitButton{
-        margin: 2px;
-        width: 20%;
-        height: 28px;
-        border-bottom: 1px solid white;
-        border-radius: 6px;
-        background-color: #006;
-        float: right;
-        text-align: center;
-        padding-top: 7px;
-      }
-      .time{
-        font-size: 0.8em;
-        color: #aaa;
-      }
-    </style>
   </head>
   <body>
-
+    <div class="sideBar">
+      <h2>People</h2>
+      <ul class="users"></ul>
+      <h2>Rooms</h2>
+      <ul class='rooms'></ul>
+    </div>
     <div id="main">
       <h1>Chat-Client</h1>
       <div class="messageBox">
@@ -73,8 +27,9 @@
         </ul>
       </div>
       <div class="inputField" contenteditable></div>
-      <div class="submitButton"> submit</div>
+      <div class="submitButton" id="b">submit</div>
     </div>
+
 
   </body>
 </html>

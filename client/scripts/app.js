@@ -1,30 +1,56 @@
 // YOUR CODE HERE:
 
 var urlz = 'https://api.parse.com/1/classes/chatterbox';
+var users = {};
+var chatrooms = {};
 
-// displayMessage(messages)
-var displayMessages = function(messageData){
+var render = function(messageData){
+  messageData = messageData.reverse();
   $('.messageList').html("");
   _(messageData).each(function(msg){
-    $('.messageList').append(msgConstruct(msg));
+    var chatroom = escape(msg.chatroom);
+    var user = escape(msg.username);
+    var message = escape(msg.text); //replace
+    var time = moment(msg.createdAt).fromNow();
+
+    msgConstruct(user, message, time);
+    populateUserList(user);
+    populateRoomList(chatroom);
   });
+
+  $('.messageBox').scrollTop(9000); //scrolls to the top
 };
 
-var msgConstruct =function(msg){
-  var user = msg.username;
-  var message = (msg.text || "").replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
-  var time = moment(msg.createdAt).fromNow();
-  return '<li><em>' + user + ':</em>\t' + message + '\t<span class="time">' + time + '</span></li>';
+var escape = function(string){
+  if(!string){return "";}
+  return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+};
+var msgConstruct =function(user, message, time){
+  var output = '<li><em>' + user + ':</em>\t' + message + '\t<span class="time">' + time + '</span></li>';
+  $('.messageList').append(output);
 };
 
+var populateUserList = function(user){
+  if(users[user]){return;}
+  var output = '<li>' + user + '</li>';
+  $('.users').append(output);
+  users[user] = true;
+};
+
+var populateRoomList = function(chatroom){
+  if(chatrooms[chatroom]){return;}
+  var output = '<li>' + chatroom + '</li>';
+  $('.chatrooms').append(output);
+  chatrooms[chatroom] = true;
+};
 
 var retrieveMessages = function(){
   $.ajax({
     url: urlz,
     type: 'GET',
+    data: {order: '-createdAt'},
     success: function(data){
       displayMessages(data.results);
-      console.log(data);
     },
     error: function(data){
       console.error("You're fucked ", data);
@@ -47,6 +73,7 @@ var postMessage = function(messageString){
       data: toTransmit,
       contentType: 'application/json',
       success: function(data){
+        console.log("successfully posted!");
         retrieveMessages();
       },
       error: function(data){
@@ -54,17 +81,25 @@ var postMessage = function(messageString){
       }
    });
 };
-// retrievemessages() returns messages
 
-// refresh messages
-    // uses setTimeout(function(retrieveMessages()) {}, 1000);
+$('document').ready(function(){
+  $('.submitButton').on('click', function(){
+    submitMessage();
+  });
+  $('.inputField').on('keydown', function(event){
+    if(event.which === 13){
+      submitMessage();
+    }
+  });
 
-//postMessage(text)
-    // strigify json object with userName, roomName, text
-    // called when user pushes 'send' button.
-
-//onButtonClick() for getting new messages
-retrieveMessages();
-setInterval(function(){
   retrieveMessages();
-}, 5000);
+  setInterval(function(){
+    retrieveMessages();
+  }, 5000);
+});
+
+var submitMessage = function(){
+  console.log('click');
+  postMessage($('.inputField').text());
+  $('.inputField').text('');
+};
