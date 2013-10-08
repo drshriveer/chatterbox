@@ -27,7 +27,7 @@ ul{
 }
 .friendList{
   font-weight: bold;
-  color: pink;
+  color: #f99;
 }
 .sideBar{
   width: 156px;
@@ -59,16 +59,16 @@ ul{
   float: left;
   padding: 3px;
 }
-.submitButton{
-  margin: 2px;
+.loginButton, .submitButton{
+  margin-top:5px;
   width: 20%;
   height: 28px;
-  border-bottom: 1px solid white;
   border-radius: 6px;
-  background-color: #006;
+  background-color: #112;
   float: right;
   text-align: center;
   padding-top: 7px;
+  box-shadow: 3px 3px 7px black;
 }
 .time{
   font-size: 0.8em;
@@ -85,7 +85,7 @@ ul{
   margin: auto;
 }
 .chatrooms li:hover, .users li:hover{
-  color: pink;
+  color: #f99;
 }
 
 #main .error {
