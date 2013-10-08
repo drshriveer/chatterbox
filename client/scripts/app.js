@@ -15,7 +15,7 @@ var render = function(messageData){
     var time = moment(msg.createdAt).fromNow();
 
     msgConstruct(user, message, time);
-    populateUserList(user);
+    // populateFriendsList(); fix
     populateRoomList(chatroom);
   });
 
@@ -28,21 +28,22 @@ var escape = function(string){
 };
 
 var msgConstruct =function(user, message, time){
-  var output = $('<li><em>' + user + ':</em>\t' + message + '\t<span class="time">' + time + '</span></li>');
+  var output = $('<li><em>' + user + '</em>:\t' + message + '\t<span class="time">' + time + '</span></li>');
   if(friends[user]){ output.addClass('friendList');}
   $('.messageList').append(output);
 };
 
-var populateUserList = function(user){
-  if(users[user]){return;}
-  var output = $('<li>' + curtail(user) + '</li>');
-  $('.users').append(output);
-  users[user] = true;
+var populateFriendsList = function(){
+  $('.users').text('');
+  for (var name in friends){
+    var output = $('<li>' + curtail(name) + '</li>');
+    $('.users').append(output);
+  }
 };
 
 var populateRoomList = function(chatroom){
   if(chatrooms[chatroom]){return;}
-  var output = $('<li>' + curtail(chatroom) + '</li>');
+  var output = $('<li class="room">' + curtail(chatroom) + '</li>');
   $('.chatrooms').append(output);
   chatrooms[chatroom] = true;
 };
@@ -104,10 +105,19 @@ $('document').ready(function(){
   //   console.log($(this).text());
   // });
 
-$('em').on('click', function(event){
-    console.log("clicked");
-    console.log($(this).text());
-  });
+  $(document).on('click', 'em', function(event){
+    var name = $(this).text();
+      if (!friends[name]){
+        friends[name] = true;
+        console.log('adding');
+        populateFriendsList();
+      }
+    });
+
+  $(document).on('click', '.room', function(event){
+ //do something that switches the room. sounds awesome, right?
+    });
+
 
   retrieveMessages();
   setInterval(function(){
