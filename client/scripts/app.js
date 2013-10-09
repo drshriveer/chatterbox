@@ -8,10 +8,12 @@ var NewMessageView = function(options){
   this.chatrooms = options.chatrooms || {};
   this.friends = options.friends || {};
   this.refreshInterval = options.timeInterval || 5000;
+  this.currentRoom = options.currentRoom || "lobby";
 
   var submit = $.proxy(this.postMessage, this);
   var login = $.proxy(this.changeUser, this);
   var toggle = $.proxy(this.toggleFriend, this);
+  var change = $.proxy(this.changeRoom, this);
   var that = this;
 
   $('.submitButton').on('click', submit);
@@ -19,6 +21,7 @@ var NewMessageView = function(options){
     if(event.which === 13){submit(event);} });
   $('.loginButton').on('click', login);
   $(document).on('click','.user', toggle);
+  $(document).on('click', '.room', change);
 
   var opt = this.messages.retrieveOptions();
   opt.success = function(data){
@@ -30,7 +33,11 @@ var NewMessageView = function(options){
   }, that.refreshInterval);
 };
 
-//should be broked
+NewMessageView.prototype.changeRoom = function(event){
+  this.currentRoom = event.currentTarget.dataset.chatroom;
+  this.messages.retrieve(this.messages.retrieveOptions());
+};
+
 NewMessageView.prototype.postMessage = function(event){
   var options = this.messages.postOptions();
   options.success = function(data){this.messages.retrieve(this.messages.retrieveOptions());};
@@ -66,12 +73,13 @@ NewMessageView.prototype.toggleFriend = function(event){
 NewMessageView.prototype.render = function(messageData, that){
   messageData = messageData.reverse();
   that.clearMessageList();
+  this.clearRoomList();
   _(messageData).each(function(msg){
     var chatroom = that.escapez(msg.roomname);
     var user = that.escapez(msg.username);
     var message = that.escapez(msg.text); //replace
     var time = moment(msg.createdAt).fromNow();
-    that.populateMessages(user, message, time);
+    if(chatroom === that.currentRoom){that.populateMessages(user, message, time);}
     that.populateRoomList(chatroom);
   });
   that.scrollToBottom();
@@ -92,7 +100,12 @@ NewMessageView.prototype.clearInputField = function(){
 };
 
 NewMessageView.prototype.clearFriendsList = function(){
-  $('.users').text('');
+  $('.users').html('');
+};
+
+NewMessageView.prototype.clearRoomList = function(){
+  $('.chatrooms').html("");
+  this.chatrooms = {};
 };
 
 NewMessageView.prototype.populateMessages =function(user, message, time){
@@ -100,7 +113,7 @@ NewMessageView.prototype.populateMessages =function(user, message, time){
   output.append('<em class="user">' + user + ':</em>\t');
   output.append('<span class="message">' + message + '</span>\t');
   output.append('<span class="time">' + time + '</span>');
-  if(this.friends[user]){ output.addClass('friendList');}
+  if(this.friends[user]){ output.addClass('highlight');}
   $('.messageList').append(output);
 };
 
@@ -114,7 +127,8 @@ NewMessageView.prototype.populateFriendsList = function(){
 
 NewMessageView.prototype.populateRoomList = function(chatroom){
   if(this.chatrooms[chatroom]){return;}
-  var output = $('<li class="room">' + this.curtail(chatroom) + '</li>');
+  var output = $('<li class="room" data-chatroom="'+ chatroom +'">' + this.curtail(chatroom) + '</li>');
+  if(this.currentRoom === chatroom){output.addClass('highlight');}
   $('.chatrooms').append(output);
   this.chatrooms[chatroom] = true;
 };
@@ -180,11 +194,7 @@ Messages.prototype.retrieveOptions= function(){
 };
 
 
-
-
-// here be document ready
 $('document').ready(function(){
-
   var messages = new Messages();
   new NewMessageView({messages: messages});
 
