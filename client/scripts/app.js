@@ -1,36 +1,45 @@
 // YOUR CODE HERE:
-
+var events = _.clone(Backbone.Events);
 var urlz = 'https://api.parse.com/1/classes/chatterbox';
 
 var NewMessageView = function(options){
-  this.messages = options.messages;
-  this.users = options.users || {};
-  this.chatrooms = options.chatrooms || {};
-  this.friends = options.friends || {};
-  this.refreshInterval = options.timeInterval || 5000;
-  this.currentRoom = options.currentRoom || "lobby";
 
-  var submit = $.proxy(this.postMessage, this);
-  var login = $.proxy(this.changeUser, this);
-  var toggle = $.proxy(this.toggleFriend, this);
-  var change = $.proxy(this.changeRoom, this);
-  var that = this;
+  events.on('message:post', this.postMessage, this);
+  events.on('message:p', this.postMessage, this);
 
-  $('.submitButton').on('click', submit);
-  $('.inputField').on('keydown', function(event){
-    if(event.which === 13){submit(event);} });
-  $('.loginButton').on('click', login);
-  $(document).on('click','.user', toggle);
-  $(document).on('click', '.room', change);
 
-  var opt = this.messages.retrieveOptions();
-  opt.success = function(data){
-        that.render(data.results, that);
-  };
-  that.messages.retrieve(opt);
-  setInterval(function(){
-    that.messages.retrieve(opt);
-  }, that.refreshInterval);
+
+
+
+
+  // this.messages = options.messages;
+  // this.users = options.users || {};
+  // this.chatrooms = options.chatrooms || {};
+  // this.friends = options.friends || {};
+  // this.refreshInterval = options.timeInterval || 5000;
+  // this.currentRoom = options.currentRoom || "lobby";
+
+  // var submit = $.proxy(this.postMessage, this);
+  // var login = $.proxy(this.changeUser, this);
+  // var toggle = $.proxy(this.toggleFriend, this);
+  // var change = $.proxy(this.changeRoom, this);
+  // var that = this;
+
+  // $('.submitButton').on('click', submit);
+  // $('.inputField').on('keydown', function(event){
+  //   if(event.which === 13){submit(event);} });
+  // $('.loginButton').on('click', login);
+  // $(document).on('click','.user', toggle);
+  // $(document).on('click', '.room', change);
+
+  // var opt = this.messages.retrieveOptions();
+  // opt.success = function(data){
+  //       that.render(data.results, that);
+  // };
+  // that.messages.retrieve(opt);
+  // setInterval(function(){
+  //   that.messages.retrieve(opt);
+  // }, that.refreshInterval);
 };
 
 NewMessageView.prototype.changeRoom = function(event){
@@ -39,8 +48,18 @@ NewMessageView.prototype.changeRoom = function(event){
 };
 
 NewMessageView.prototype.postMessage = function(event){
-  var options = this.messages.postOptions();
-  options.success = function(data){this.messages.retrieve(this.messages.retrieveOptions());};
+  //var options = this.messages.postOptions();
+  var options = {
+    data: JSON.stringify({
+      'username': location.search.split("=")[1],
+      'text': $('.inputField').text(),
+      'roomname': 'lobby' //change this!
+    }),
+    error: function(data){
+      console.error("You're fucked ", data);
+    }
+  };
+  options.success = function(data){ events.trigger('message:post', data);};
   this.messages.post(options);
   this.clearInputField();
 };
@@ -172,15 +191,7 @@ Messages.prototype.post = function(options){
 };
 
 Messages.prototype.postOptions = function(){
-  return {
-    data: JSON.stringify({
-      'username': location.search.split("=")[1],
-      'text': $('.inputField').text(),
-      'roomname': 'lobby' //change this!
-    }),
-    error: function(data){
-      console.error("You're fucked ", data);
-    }
+  return 
   };
 };
 
