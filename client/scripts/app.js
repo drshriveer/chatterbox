@@ -1,212 +1,206 @@
 // YOUR CODE HERE:
-var events = _.clone(Backbone.Events);
-var urlz = 'https://api.parse.com/1/classes/chatterbox';
+//
+//    All the render stuff
+//
+var MessagesView = Backbone.View.extend({
+  initialize : function(){
+    this.collection.on('retrieve', this.render, this);
+  },
 
-var NewMessageView = function(options){
-
-  events.on('message:post', this.postMessage, this);
-  events.on('message:p', this.postMessage, this);
-
-
-
-
-
-
-  // this.messages = options.messages;
-  // this.users = options.users || {};
-  // this.chatrooms = options.chatrooms || {};
-  // this.friends = options.friends || {};
-  // this.refreshInterval = options.timeInterval || 5000;
-  // this.currentRoom = options.currentRoom || "lobby";
-
-  // var submit = $.proxy(this.postMessage, this);
-  // var login = $.proxy(this.changeUser, this);
-  // var toggle = $.proxy(this.toggleFriend, this);
-  // var change = $.proxy(this.changeRoom, this);
-  // var that = this;
-
-  // $('.submitButton').on('click', submit);
-  // $('.inputField').on('keydown', function(event){
-  //   if(event.which === 13){submit(event);} });
-  // $('.loginButton').on('click', login);
-  // $(document).on('click','.user', toggle);
-  // $(document).on('click', '.room', change);
-
-  // var opt = this.messages.retrieveOptions();
-  // opt.success = function(data){
-  //       that.render(data.results, that);
-  // };
-  // that.messages.retrieve(opt);
-  // setInterval(function(){
-  //   that.messages.retrieve(opt);
-  // }, that.refreshInterval);
-};
-
-NewMessageView.prototype.changeRoom = function(event){
-  this.currentRoom = event.currentTarget.dataset.chatroom;
-  this.messages.retrieve(this.messages.retrieveOptions());
-};
-
-NewMessageView.prototype.postMessage = function(event){
-  //var options = this.messages.postOptions();
-  var options = {
-    data: JSON.stringify({
-      'username': location.search.split("=")[1],
-      'text': $('.inputField').text(),
-      'roomname': 'lobby' //change this!
-    }),
-    error: function(data){
-      console.error("You're fucked ", data);
-    }
-  };
-  options.success = function(data){ events.trigger('message:post', data);};
-  this.messages.post(options);
-  this.clearInputField();
-};
-
-NewMessageView.prototype.changeUser = function(event){
-  var name = prompt("You must be logged in to view this page. Please enter a username.");
-  location.search = "?username=" + name;
-};
-
-NewMessageView.prototype.toggleFriend = function(event){
-  var that = this;
-  var name = event.currentTarget.innerText.slice(0,-1);
-  console.log('name', name);
-  if (!that.friends[name]){
-    that.friends[name] = true;
-    that.populateFriendsList();
-    that.messages.retrieve(that.messages.retrieveOptions());
-  } else{
-    delete that.friends[name];
-    that.populateFriendsList();
-    that.messages.retrieve(that.messages.retrieveOptions());
-  }
-};
-
-
-
-// render loops though recieved message data
-// then delegates tasks for populating parts of the chat room
-// such as messages, users, chatrooms
-NewMessageView.prototype.render = function(messageData, that){
-  messageData = messageData.reverse();
-  that.clearMessageList();
-  this.clearRoomList();
-  _(messageData).each(function(msg){
-    var chatroom = that.escapez(msg.roomname);
-    var user = that.escapez(msg.username);
-    var message = that.escapez(msg.text); //replace
-    var time = moment(msg.createdAt).fromNow();
-    if(chatroom === that.currentRoom){that.populateMessages(user, message, time);}
-    that.populateRoomList(chatroom);
-  });
-  that.scrollToBottom();
-};
-
-// -------------------  DOM WORK
-
-NewMessageView.prototype.scrollToBottom = function(){
-  $('.messageBox').scrollTop(9000);
-};
-
-NewMessageView.prototype.clearMessageList = function(){
-  $('.messageList').html("");
-};
-
-NewMessageView.prototype.clearInputField = function(){
-  $('.inputField').text('');
-};
-
-NewMessageView.prototype.clearFriendsList = function(){
-  $('.users').html('');
-};
-
-NewMessageView.prototype.clearRoomList = function(){
-  $('.chatrooms').html("");
-  this.chatrooms = {};
-};
-
-NewMessageView.prototype.populateMessages =function(user, message, time){
-  var output = $('<li></li>');
-  output.append('<em class="user">' + user + ':</em>\t');
-  output.append('<span class="message">' + message + '</span>\t');
-  output.append('<span class="time">' + time + '</span>');
-  if(this.friends[user]){ output.addClass('highlight');}
-  $('.messageList').append(output);
-};
-
-NewMessageView.prototype.populateFriendsList = function(){
-  this.clearFriendsList();
-  for (var name in this.friends){
-    var output = $('<li>' + this.curtail(name) + '</li>');
-    $('.users').append(output);
-  }
-};
-
-NewMessageView.prototype.populateRoomList = function(chatroom){
-  if(this.chatrooms[chatroom]){return;}
-  var output = $('<li class="room" data-chatroom="'+ chatroom +'">' + this.curtail(chatroom) + '</li>');
-  if(this.currentRoom === chatroom){output.addClass('highlight');}
-  $('.chatrooms').append(output);
-  this.chatrooms[chatroom] = true;
-};
-//-------- END DOM WORK
-
-//-------- here be helpers
-NewMessageView.prototype.curtail = function(string){
-  if(string.length < 12){return string;}
-  return(string.slice(0,12) + '..');
-};
-
-NewMessageView.prototype.escapez = function(string){
-  if(!string){return "";}
-  return string.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
-};
-//-------- end of helpers
-
-
-
-var Messages = function(){};
-
-Messages.prototype.retrieve = function(options){
-  $.ajax({
-    url: urlz,
-    type: 'GET',
-    data: options.data,
-    success: options.success,
-    error: options.error
-  });
-};
-
-Messages.prototype.post = function(options){
-   $.ajax({
-      url: urlz,
-      type: 'POST',
-      data: options.data,
-      contentType: 'application/json',
-      success: options.success,
-      error: options.error
-   });
-};
-
-Messages.prototype.postOptions = function(){
-  return 
-  };
-};
-
-Messages.prototype.retrieveOptions= function(){
-    return {
-      data: {order: '-createdAt'},
-      error: function(data){
-        console.error("You're fucked ", data);
+  render : function(data){
+    data = data.reverse();
+    this.clearMessageList();
+    _(data).each(function(msg){
+      var chatroom = this.escapez(msg.roomname);
+      var user = this.escapez(msg.username);
+      var message = this.escapez(msg.text); //replace
+      var time = moment(msg.createdAt).fromNow();
+      if(chatroom === this.currentRoom){
+        this.populateMessages(user, message, time);
       }
-    };
-};
+    });
+    that.scrollToBottom();
+  },
+
+  populateMessages : function(user, message, time){
+    var output = $('<li></li>');
+    output.append('<em class="user">' + user + ':</em>\t');
+    output.append('<span class="message">' + message + '</span>\t');
+    output.append('<span class="time">' + time + '</span>');
+    if(this.friends[user]){ output.addClass('highlight');}
+    this.el.append(output);
+  },
+
+  clearMessageList : function(){
+    this.el.html("");
+  },
+
+  scrollToBottom : function(){
+    this.el.scrollTop(9000);
+  }
+
+});
+/////////////////////////////////////////////////////////////////
+
+
+
+var ChatroomView = Backbone.View.extend({
+  initialize: function(){
+    this.collection.on('retrieve', this.render, this);
+  },
+
+  render : function(data){
+    this.clearRoomList();
+    _(data).each(function(subData){
+      var chatroom = subData.roomname;
+      if(! this.chatrooms[chatroom]){
+        var output = $('<li class="room" data-chatroom="'+ chatroom +'">' + this.curtail(chatroom) + '</li>');
+        if(this.currentRoom === chatroom){output.addClass('highlight');}
+        this.el.append(output);
+        this.chatrooms[chatroom] = true;
+      }
+    });
+  },
+
+  clearRoomList : function(){
+    this.el.html("");
+    this.chatrooms = {};
+  }
+
+});
+
+//////////////////////////////////////////////////////////////
+var FriendsView = Backbone.View.extend({
+  initialize : function(){
+    //this.collection.on('something', do soemthing, this);
+  },
+
+  populateFriendsList : function(){
+    this.clearFriendsList();
+    for (var name in this.friends){
+      var output = $('<li>' + this.curtail(name) + '</li>');
+      this.el.append(output);
+    }
+  },
+
+  clearFriendsList : function(){
+    this.el.html('');
+  }
+});
+
+///////////////////////////////////////////////////////////
+
+
+
+var NewMessageView = Backbone.View.extend({
+  events: {
+    'newMesageBox': 'postMessage'
+  },
+
+  initialize: function(){
+    this.collection.on('post', this.clearInputField, this);
+    this.collection.on('post', this.retrieve, this);
+
+
+    // -------------- these go to other views
+    // events.on('username:click', this.toggleFriend, this);
+    // events.on('chatroom:click', this.changeRoom, this);
+    // events.on('login:click', this.changeUser, this);
+  },
+
+  postMessage : function(event){
+            ///  still need to stringify.????????
+    this.collection.create({
+        'username': location.search.split("=")[1],
+        'text': this.el.$('.inputField').text(),
+        'roomname': "lobby" //$('.chatrooms').hasClass('.highlight').text();
+      });
+  },
+
+  changeRoom : function(event){
+    this.currentRoom = event.currentTarget.dataset.chatroom;
+    //messeges.fetch();
+    messages.get();
+    //this.trigger();
+    //this.messages.retrieve(this.messages.retrieveOptions());
+  },
+
+  changeUser : function(event){
+    var name = prompt("You must be logged in to view this page. Please enter a username.");
+    location.search = "?username=" + name;
+  },
+
+  toggleFriend : function(event){
+    var name = event.currentTarget.innerText.slice(0,-1);
+    if (!this.friends[name]){
+      this.friends[name] = true;
+      this.populateFriendsList();
+      messages.get();
+      //this.trigger();     //this.trigger();
+      //this.messages.retrieve(this.messages.retrieveOptions());
+    } else{
+      delete this.friends[name];
+      this.populateFriendsList();
+      messages.get();
+      //this.trigger();    //this.trigger();
+      //this.messages.retrieve(this.messages.retrieveOptions());
+    }
+  },
+
+
+  clearInputField : function(){
+    this.el.$('.inputField').text('');
+  }
+});
+
+
+
+
+var Message = Backbone.Model.extend({
+  url: 'https://api.parse.com/1/classes/chatterbox'
+});
+
+var Messages = Backbone.Collection.extend({
+  model: Message
+});
+
+// Messages.prototype.retrieve = function(){
+//   $.ajax({
+//     url: urlz,
+//     type: 'GET',
+//     data: {order: '-createdAt'},
+//     success: function(data){
+//       events.trigger('message:retrieve', data);
+//     },
+//     error: function(data){
+//       console.error("You're fucked ", data);
+//   }
+//   });
+// };
+
+// Messages.prototype.post = function(options){
+
+
+//    $.ajax({
+//       url: urlz,
+//       type: 'POST',
+//       data: options.data,
+//       contentType: 'application/json',
+//       success: function(data){
+//         events.trigger('message:post', data);
+//       },
+//       error: function(data){
+//         console.error("You're fucked ", data);
+//     }
+//    });
+// };
 
 
 $('document').ready(function(){
   var messages = new Messages();
-  new NewMessageView({messages: messages});
+  new NewMessageView({el: $('.submitContainer'), collection: messages});
+  new MessagesView({el: $('.messageList'), collection: messages});
+  new ChatroomView({el: $('.chatrooms'), collection: messages});
+  new FriendsView({el: $('.friends'), collection: messages});
 
 });
